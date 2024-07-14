@@ -310,8 +310,15 @@ def connect():
 	#print("Interface: " + str(args.interface))
 	p = btle.Peripheral(adress,iface=args.interface)	
 	val=b'\x01\x00'
-	p.writeCharacteristic(0x0038,val,True) #enable notifications of Temperature, Humidity and Battery voltage
-	p.writeCharacteristic(0x0046,b'\xf4\x01\x00',True)
+	# Old version
+	try:
+		p.writeCharacteristic(0x0038,val,True) #enable notifications of Temperature, Humidity and Battery voltage
+		p.writeCharacteristic(0x0043,b'\xf4\x01\x00',True)
+	except:
+		# New version
+		p.writeCharacteristic(0x0035,val,True) #enable notifications of Temperature, Humidity and Battery voltage
+		p.writeCharacteristic(0x0046,b'\xf4\x01\x00',True)
+
 	p.withDelegate(MyDelegate("abc"))
 	return p
 
@@ -512,8 +519,7 @@ if args.device:
 						# print("Battery-Level: " + str(batt))
 						# globalBatteryLevel = batt
 				
-				
-			if p.waitForNotifications(2000):
+			if p.waitForNotifications(10000):
 				# handleNotification() was called
 				
 				cnt += 1
@@ -536,6 +542,7 @@ if args.device:
 				continue
 		except Exception as e:
 			print("Connection lost")
+			print(e)
 			connectionLostCounter +=1
 			if connected is True: #First connection abort after connected
 				unconnectedTime=int(time.time())
